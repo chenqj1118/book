@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test: book</title>
+	<script  type="text/javascript" src="js/vue/dist/vue.js"></script>
+	<script  type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
+	<link rel="stylesheet" href="css/book.css">
+</head>
+<body>
+    <h1>Test: book</h1>
+    <hr>
+	
+    <div class="book-container">
+		<h2>预约管理</h2>
+		<div class="book-content">
+			<div class="search-box">
+				<form>
+					<select id="storeName" name="storeName" style="height:25px;"><option >合肥仓</option></select>
+					<input id="date" type="date" value="2016-07-15"/>
+					<input type="button" value="查询" id="searchBtn"/>
+				</form>
+			</div>
+			<div id="app">
+
+			</div>
+		</div>
+	</div>
+
+<script type="text/template" id="book-tpl">
+	<div v-if="bookData" class="bookData">
+		<div class="color-tip"><label><i class="get-color"></i><span>收货预约</span></label><label><i class="send-color"></i><span>发货预约</span></label></div>
+		<div class="listResult" v-if="workingTimeArr">
+			<table>
+				<thead>
+					<tr>
+					  <th></th>
+					  <th v-for="workingTime in workingTimeArr"><span class="time">{{workingTime}}</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="platItem in bookData.data"">
+						<td>{{platItem.platName}}</td>
+						<td v-for="workingTime in workingTimeArr">
+							<div v-for="dataDtl in platItem.dataDtl" class="unitContent" @click="handleClick(dataDtl)" v-if="dataDtl.bookTime.split('-')[0]==workingTime" :style="{width:dataDtl.timeTotalNum+'00%',background:(dataDtl.bookType=='收货预约')?'#f38e03':'#2fb2a0'}">
+								<span>{{dataDtl.bookTime}}<br/>{{dataDtl.companyName}}</span>
+								<i :class="dataDtl.bookStatus=='已审核'?'yes':'no'" :title="dataDtl.bookStatus"></i>
+								<div class="layerbox">
+									<span>预约编号：{{dataDtl.bookId}}</span>
+									<span>物流公司：{{dataDtl.companyName}}</span>
+									<span>预约类型：{{dataDtl.bookType}}</span>
+									<span>预约状态：{{dataDtl.bookStatus}}</span>
+									<span>预约时间：{{dataDtl.bookTime}}</span>
+									<span>车辆信息：{{dataDtl.carInfo}}</span>
+									<span>司机信息：{{dataDtl.driverInfo}}</span>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</script>
+<script type="text/javascript">
+$(function(){
+	//var tpl = require("./book-tpl.html");
+
+	//是否是整数
+	function isInteger(obj) {
+	 return obj%1 === 0
+	}
+
+	//通过仓库上班时间 获取时间片段，例如：getworkingTimeArr("8:00-17:00")得出的结果是["8:00","8:30","9:00",...,"17:00"]
+	var getworkingTimeArr = function(str){   
+		var workingTimeArr = str.split('-');
+		var newworkingTimeArr = [];
+		for(var i in workingTimeArr){
+			var time = workingTimeArr[i];
+			var m = parseInt(time.substring(0,time.indexOf(":"))); //获取整点数
+			var n = (time.substr(time.length-2))=="30" ? m + 0.5 : m;
+			newworkingTimeArr.push(n);
+		};
+		var myNewworkingTimeArr = [];
+		for(var i = newworkingTimeArr[0]; i<= newworkingTimeArr[1]; i = i+0.5){
+			var n = isInteger(i) ? Math.floor(i) + ":00" : Math.floor(i) + ":30";
+			myNewworkingTimeArr.push(n);
+		};
+		return myNewworkingTimeArr;
+	}
+
+	//给json对象添加时间单元的总倍数timeTotalNum，获取新的json
+	var getNewJson = function(json){
+		for(var i in json.data){
+			for(var j in json.data[i].dataDtl){
+				var bookTime = json.data[i].dataDtl[j].bookTime;
+				json.data[i].dataDtl[j].timeTotalNum = getworkingTimeArr(bookTime).length-1;
+			}
+		};
+		return json;
+	}
+
+
+	//按钮点击事件
+	$("#searchBtn").click(function(){
+		var storeName = $("#storeName").val();
+		var date = $("#date").val();
+		//$.post("queryBook.action",{storeName:storeName,date:date},function(json){ 
+		
+			var json = {
+				storeName: "合肥仓",     //仓库名
+				date: "2016/7/15",       //日期
+				workingTime: "8:00-17:00", //时间段
+				data: [
+						{
+							platName:"月台1",
+							platId:"234",
+							dataDtl: [
+								{	
+									bookId: 1,
+									companyName: "中通物流",   //物流公司名
+									bookType: "收货预约",      //预约类型
+									bookStatus: "未审核",      //预约状态
+									bookTime: "9:00-11:00",    //预约时间
+									carInfo: "XXX车-沪A68888", //车辆信息
+									driverInfo: "张三-15623585255",//司机信息
+								},
+								{
+									bookId: 2,
+									companyName: "圆通物流",
+									bookType: "发货预约",
+									bookStatus: "已审核",
+									bookTime: "11:30-14:00",
+									carInfo: "XXX车-沪A68889",
+									driverInfo: "李四-15623585255",
+								},	
+								{
+									bookId: 3,
+									companyName: "韵达物流",
+									bookType: "收货预约",
+									bookStatus: "已审核",
+									bookTime: "14:00-16:30",
+									carInfo: "XXX车-沪A68880",
+									driverInfo: "王五-15623585255",
+								},					
+							]
+						},
+						{
+							platName:"月台2",
+							platId:"2343",
+							dataDtl: [
+								{	
+									bookId: 1,
+									companyName: "中通物流",   //物流公司名
+									bookType: "收货预约",      //预约类型
+									bookStatus: "已审核",
+									bookTime: "9:00-11:00",    //预约时间
+									carInfo: "XXX车-沪A68888", //车辆信息
+									driverInfo: "张三-15623585255",//司机信息
+								},
+								{
+									bookId: 2,
+									companyName: "圆通物流",
+									bookType: "发货预约",
+									bookStatus: "未审核",
+									bookTime: "11:00-12:00",
+									carInfo: "XXX车-沪A68889",
+									driverInfo: "李四-15623585255",
+								},	
+								{
+									bookId: 3,
+									companyName: "韵达物流",
+									bookType: "收货预约",
+									bookStatus: "已审核",
+									bookTime: "13:00-15:00",
+									carInfo: "XXX车-沪A68880",
+									driverInfo: "王五-15623585255",
+								},					
+							]
+						}												
+				]
+			};
+		
+			var workingTimeArr = getworkingTimeArr(json.workingTime);
+			var newJson = getNewJson(json);	
+			new Vue({
+				el: '#app',
+				template: $("#book-tpl").html(),
+				data: {
+					bookData: newJson,
+					workingTimeArr: workingTimeArr
+				},
+				methods: {
+					handleClick (bookObj){  //处理预约单，参数为预约单对象，如：bookObj.bookId; bookObj.companyName
+						alert("您点击了"+ bookObj.companyName);
+						var bookStatus = bookObj.bookStatus;
+						if(bookStatus=="未审核"){
+							bookObj.bookStatus = "已审核";
+							alert("原来的订单状态是'"+ bookStatus+"';现在的订单状态是'" + bookObj.bookStatus+"'；请看界面小圆点颜色的变化");
+						};
+						console.log(bookObj);
+						//$.post("saveBook.action",{bookObj:bookObj},function(json){}); 
+					}			
+				}
+			})
+		//});
+	}); 
+})
+
+</script>
+</body>
+</html>
