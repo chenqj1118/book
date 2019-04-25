@@ -1,0 +1,33 @@
+<div v-if="bookData" class="bookData">
+	<div class="color-tip"><label><i class="get-color"></i><span>收货预约</span></label><label><i class="send-color"></i><span>发货预约</span></label></div>
+	<div class="listResult" v-if="workingTimeArr">
+		<table>
+			<thead>
+				<tr>
+				  <th></th>
+				  <th v-for="workingTime in workingTimeArr"><span class="time">{{workingTime}}</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="platItem in bookData.data"">
+					<td>{{platItem.platName}}</td>
+					<td v-for="workingTime in workingTimeArr">
+						<div v-for="dataDtl in platItem.dataDtl" class="unitContent" @click="handleClick(dataDtl)" v-if="dataDtl.bookTime.split('-')[0]==workingTime" :style="{width:dataDtl.timeTotalNum+'00%',background:(dataDtl.bookType=='收货预约')?'#f38e03':'#2fb2a0'}">
+							<span>{{dataDtl.bookTime}}<br/>{{dataDtl.companyName}}</span>
+							<i :class="dataDtl.bookStatus=='已审核'?'yes':'no'" :title="dataDtl.bookStatus"></i>
+							<div class="layerbox">
+								<span>预约编号：{{dataDtl.bookId}}</span>
+								<span>物流公司：{{dataDtl.companyName}}</span>
+								<span>预约类型：{{dataDtl.bookType}}</span>
+								<span>预约状态：{{dataDtl.bookStatus}}</span>
+								<span>预约时间：{{dataDtl.bookTime}}</span>
+								<span>车辆信息：{{dataDtl.carInfo}}</span>
+								<span>司机信息：{{dataDtl.driverInfo}}</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

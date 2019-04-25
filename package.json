@@ -1,0 +1,22 @@
+{
+  "name": "book",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Run 'node test-server.js' then open 'http://localhost:<port>/web-test/test.html' to run test.\" && exit 1"
+  },
+  "repository": {
+    "type": "svn",
+    "url": "svn+https://dev.bokesoft.com:9443/svn/Yigo-redist/trunk/Frontend/modules/bokesoft.com/"
+  },
+  "author": "bokesoft.com",
+  "license": "Commercial",
+  "dependencies": {
+    "vue": "^2.1.10"
+  },
+  "devDependencies": {
+    "boke-cms-ajax": "file:../../../modules/bokesoft.com/cms/boke-cms-ajax",
+    "webpack-dev-web-test": "../../../modules/supports/webpack-dev-web-test"
+  }
+}
